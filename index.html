@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Screen Scrollable Table</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            height: 100%;
+            width: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Main container for the table with scroll */
+        .table-container {
+            width: 100vw;
+            height: 100vh;
+            overflow-x: auto;
+            /* Allow horizontal scrolling */
+            overflow-y: auto;
+            /* Allow vertical scrolling */
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            padding-top: 20px;
+            padding-left: 10px;
+        }
+
+        /* Table structure wrapper */
+        .table-wrapper {
+            display: table;
+            width: max-content;
+            border-collapse: collapse;
+        }
+
+        .table-wrapper .row {
+            display: table-row;
+        }
+
+        .table-wrapper .cell {
+            display: table-cell;
+            /* padding: 15px; */
+            border: 1px solid #ddd;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        /* Sticky ID column */
+        .table-wrapper .id-cell {
+            position: sticky;
+            left: 0;
+            background-color: #f4f4f4;
+            z-index: 2;
+            /* Ensure the ID column stays on top */
+        }
+
+        .header-row {
+            background-color: #f1f1f1;
+            font-weight: bold;
+        }
+
+        /* Custom styling for day columns */
+        .scroll-container {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+        .scroll-container .day-column {
+            min-width: 120px;
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+
+        /* Prevent vertical scrollbar */
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background-color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .green {
+            background-color: #d4edda;
+            color: green;
+        }
+
+        .red {
+            background-color: #f8d7da;
+            color: red;
+        }
+
+        .violet {
+            background-color: #e8d4f9;
+            color: violet;
+        }
+
+        .mixed-green-violet {
+            font-size: 5px;
+            background: linear-gradient(to right, #0ce03e 50%, #7d0ce0 50%);
+            color: transparent;
+        }
+
+        .mixed-red-violet {
+            font-size: 5px;
+            background: linear-gradient(to right, #e10719 50%, #780cd7 50%);
+            color: transparent;
+        }
+
+        .main {
+            display: flex;
+        }
+
+        /* .id{
+            display: none;
+        } */
+
+
+        /* nav{
+            margin: 10px;
+        }
+        label{
+            margin: 20px;
+            padding: 20px;
+        } */
+
+        /* for control */
+        h1 {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            margin: 0;
+            padding: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 1rem;
+            width: 100%;
+            max-width: 600px;
+            margin: 1rem auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        button {
+            padding: 0.7rem 1rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Responsive Design */
+        @media (min-width: 768px) {
+            .controls {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+
+            .controls>div {
+                flex: 1;
+                min-width: 200px;
+            }
+        }
+
+
+        .hidden {
+            display: none;
+        }
+    </style>
+
+    </style>
+</head>
+
+<body>
+    <nav>
+        <h1>91club data </h1>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h3>Global Display Options</h3>
+            <label><input type="checkbox" id="globalID" checked> Show ID</label>
+            <label><input type="checkbox" id="globalNumber" checked> Show Number</label>
+            <label><input type="checkbox" id="globalSize" checked> Show Size</label>
+            <label><input type="checkbox" id="globalColor" checked> Show Color</label>
+            <button onclick="applyGlobalSettings()">Apply Global Settings</button>
+            <br>
+
+
+        </div>
+    </nav>
+    <div class="table-container">
+        <div class="table-wrapper">
+            <!-- Header Row -->
+            <div class="row header-row">
+                <div class="cell id-cell">ID
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>...</th>
+                            </tr>
+                        </thead>
+                        <!-- copy past the id data here-->
+                        <tbody>
+            
+                            <tr>
+                                <td class="id">0010307</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010306</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010305</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010304</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010303</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010302</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010301</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010300</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010299</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010298</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010307</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010306</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010305</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010304</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010303</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010302</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010301</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010300</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010299</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010298</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010287</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010286</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010285</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010284</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010283</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010282</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010281</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010280</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010279</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010278</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010277</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010276</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010275</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010274</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010273</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010272</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010271</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010270</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010269</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010268</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010267</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010266</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010265</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010264</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010263</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010262</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010261</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010260</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010259</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                            <tr>
+                                <td class="id">0010258</td> <!-- Extract last 7 characters -->
+                        
+                            </tr>
+                    </tbody>
+                    </table>
+                </div>
+                <!--here is past daily data by day by by adding data and put table copy past-->
+                <div class="cell">Day 1
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="idColumn">ID</th>
+                                <th class="numberColumn">Number</th>
+                                <th class="sizeColumn">Size</th>
+                                <th class="colorColumn">Colors</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <tr>
+                                <td class="idColumn id">20241223100050587</td>
+                                <td class=" numberColumn number">0</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn mixed-red-violet">red, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050586</td>
+                                <td class=" numberColumn number">9</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050585</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050584</td>
+                                <td class=" numberColumn number">7</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050583</td>
+                                <td class=" numberColumn number">1</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050582</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050581</td>
+                                <td class=" numberColumn number">0</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn mixed-red-violet">red, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050580</td>
+                                <td class=" numberColumn number">4</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050579</td>
+                                <td class=" numberColumn number">7</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050578</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050577</td>
+                                <td class=" numberColumn number">9</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050576</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050575</td>
+                                <td class=" numberColumn number">0</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn mixed-red-violet">red, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050574</td>
+                                <td class=" numberColumn number">5</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn mixed-green-violet">green, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050573</td>
+                                <td class=" numberColumn number">5</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn mixed-green-violet">green, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050572</td>
+                                <td class=" numberColumn number">8</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050571</td>
+                                <td class=" numberColumn number">7</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050570</td>
+                                <td class=" numberColumn number">0</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn mixed-red-violet">red, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050569</td>
+                                <td class=" numberColumn number">0</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn mixed-red-violet">red, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050568</td>
+                                <td class=" numberColumn number">3</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050567</td>
+                                <td class=" numberColumn number">5</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn mixed-green-violet">green, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050566</td>
+                                <td class=" numberColumn number">1</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050565</td>
+                                <td class=" numberColumn number">5</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn mixed-green-violet">green, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050564</td>
+                                <td class=" numberColumn number">9</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050563</td>
+                                <td class=" numberColumn number">4</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050562</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050561</td>
+                                <td class=" numberColumn number">3</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050560</td>
+                                <td class=" numberColumn number">0</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn mixed-red-violet">red, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050559</td>
+                                <td class=" numberColumn number">5</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn mixed-green-violet">green, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050558</td>
+                                <td class=" numberColumn number">2</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050557</td>
+                                <td class=" numberColumn number">2</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050556</td>
+                                <td class=" numberColumn number">9</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050555</td>
+                                <td class=" numberColumn number">2</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050554</td>
+                                <td class=" numberColumn number">2</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050553</td>
+                                <td class=" numberColumn number">7</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050552</td>
+                                <td class=" numberColumn number">1</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050551</td>
+                                <td class=" numberColumn number">2</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050550</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050549</td>
+                                <td class=" numberColumn number">7</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050548</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050547</td>
+                                <td class=" numberColumn number">3</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050546</td>
+                                <td class=" numberColumn number">3</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn green">green</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050545</td>
+                                <td class=" numberColumn number">8</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050544</td>
+                                <td class=" numberColumn number">2</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050543</td>
+                                <td class=" numberColumn number">4</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050542</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050541</td>
+                                <td class=" numberColumn number">5</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn mixed-green-violet">green, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050540</td>
+                                <td class=" numberColumn number">0</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn mixed-red-violet">red, violet</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050539</td>
+                                <td class=" numberColumn number">6</td>
+                                <td class=" sizeColumn size">Big</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                            <tr>
+                                <td class="idColumn id">20241223100050538</td>
+                                <td class=" numberColumn number">4</td>
+                                <td class=" sizeColumn size">Small</td>
+                                <td class="colorColumn red">red</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+                <div class="cell">Day 2
+                    <table>
+                        <thead>
+                            <tr>
+                                                <th class="idColumn">ID</th>
+                                                <th class="numberColumn">Number</th>
+                                                <th class="sizeColumn">Size</th>
+                                                <th class="colorColumn">Colors</th>
+                                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                                <tr>
+                                    <td  class="idColumn id">20241223100010302</td>
+                                    <td class=" numberColumn number">4</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010301</td>
+                                    <td class=" numberColumn number">2</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010300</td>
+                                    <td class=" numberColumn number">4</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010299</td>
+                                    <td class=" numberColumn number">6</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010298</td>
+                                    <td class=" numberColumn number">2</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010297</td>
+                                    <td class=" numberColumn number">6</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010296</td>
+                                    <td class=" numberColumn number">7</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010295</td>
+                                    <td class=" numberColumn number">5</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn mixed-green-violet">green, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010294</td>
+                                    <td class=" numberColumn number">1</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010293</td>
+                                    <td class=" numberColumn number">6</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010292</td>
+                                    <td class=" numberColumn number">5</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn mixed-green-violet">green, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010291</td>
+                                    <td class=" numberColumn number">0</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn mixed-red-violet">red, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010290</td>
+                                    <td class=" numberColumn number">1</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010289</td>
+                                    <td class=" numberColumn number">1</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010288</td>
+                                    <td class=" numberColumn number">4</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010287</td>
+                                    <td class=" numberColumn number">3</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010286</td>
+                                    <td class=" numberColumn number">6</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010285</td>
+                                    <td class=" numberColumn number">6</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010284</td>
+                                    <td class=" numberColumn number">8</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010283</td>
+                                    <td class=" numberColumn number">9</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010282</td>
+                                    <td class=" numberColumn number">6</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010281</td>
+                                    <td class=" numberColumn number">5</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn mixed-green-violet">green, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010280</td>
+                                    <td class=" numberColumn number">7</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010279</td>
+                                    <td class=" numberColumn number">7</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010278</td>
+                                    <td class=" numberColumn number">3</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010277</td>
+                                    <td class=" numberColumn number">0</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn mixed-red-violet">red, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010276</td>
+                                    <td class=" numberColumn number">7</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010275</td>
+                                    <td class=" numberColumn number">8</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010274</td>
+                                    <td class=" numberColumn number">1</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010273</td>
+                                    <td class=" numberColumn number">9</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010272</td>
+                                    <td class=" numberColumn number">4</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010271</td>
+                                    <td class=" numberColumn number">0</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn mixed-red-violet">red, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010270</td>
+                                    <td class=" numberColumn number">5</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn mixed-green-violet">green, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010269</td>
+                                    <td class=" numberColumn number">3</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010268</td>
+                                    <td class=" numberColumn number">8</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010267</td>
+                                    <td class=" numberColumn number">2</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010266</td>
+                                    <td class=" numberColumn number">8</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010265</td>
+                                    <td class=" numberColumn number">5</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn mixed-green-violet">green, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010264</td>
+                                    <td class=" numberColumn number">9</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010263</td>
+                                    <td class=" numberColumn number">3</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010262</td>
+                                    <td class=" numberColumn number">1</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010261</td>
+                                    <td class=" numberColumn number">3</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010260</td>
+                                    <td class=" numberColumn number">9</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010259</td>
+                                    <td class=" numberColumn number">6</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010258</td>
+                                    <td class=" numberColumn number">1</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010257</td>
+                                    <td class=" numberColumn number">0</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn mixed-red-violet">red, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010256</td>
+                                    <td class=" numberColumn number">5</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn mixed-green-violet">green, violet</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010255</td>
+                                    <td class=" numberColumn number">6</td>
+                                    <td class=" sizeColumn size">Big</td>
+                                    <td class="colorColumn red">red</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010254</td>
+                                    <td class=" numberColumn number">3</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn green">green</td>
+                                </tr>
+                                <tr>
+                                    <td  class="idColumn id">20241223100010253</td>
+                                    <td class=" numberColumn number">0</td>
+                                    <td class=" sizeColumn size">Small</td>
+                                    <td class="colorColumn mixed-red-violet">red, violet</td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- <script>
+        function applyGlobalSettings() {
+            const showNumber = document.getElementById('globalNumber').checked;
+            const showSize = document.getElementById('globalSize').checked;
+            const showColor = document.getElementById('globalColor').checked;
+    
+            // Toggle visibility for all rows
+            toggleColumns(showNumber, showSize, showColor);
+        }
+    
+        
+    
+        function toggleColumns(showNumber, showSize, showColor) {
+            // Toggle Number column
+            document.querySelectorAll('.numberColumn').forEach(cell => {
+                cell.classList.toggle('hidden', !showNumber);
+            });
+    
+            // Toggle Size column
+            document.querySelectorAll('.sizeColumn').forEach(cell => {
+                cell.classList.toggle('hidden', !showSize);
+            });
+    
+            // Toggle Color column
+            document.querySelectorAll('.colorColumn').forEach(cell => {
+                cell.classList.toggle('hidden', !showColor);
+            });
+        }
+    </script> -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hide ID column by default
+            document.querySelectorAll('.idColumn').forEach(cell => {
+                cell.classList.add('hidden');
+            });
+        });
+    
+        function applyGlobalSettings() {
+            const showID = document.getElementById('globalID').checked;
+            const showNumber = document.getElementById('globalNumber').checked;
+            const showSize = document.getElementById('globalSize').checked;
+            const showColor = document.getElementById('globalColor').checked;
+    
+            // Apply visibility settings to all columns
+            toggleColumns(showID, showNumber, showSize, showColor);
+        }
+    
+        function hideAllColumns() {
+            // Hide all columns (ID, Number, Size, Color)
+            toggleColumns(false, false, false, false);
+        }
+    
+        function toggleColumns(showID, showNumber, showSize, showColor) {
+            // Toggle ID column
+            document.querySelectorAll('.idColumn').forEach(cell => {
+                cell.classList.toggle('hidden', !showID);
+            });
+    
+            // Toggle Number column
+            document.querySelectorAll('.numberColumn').forEach(cell => {
+                cell.classList.toggle('hidden', !showNumber);
+            });
+    
+            // Toggle Size column
+            document.querySelectorAll('.sizeColumn').forEach(cell => {
+                cell.classList.toggle('hidden', !showSize);
+            });
+    
+            // Toggle Color column
+            document.querySelectorAll('.colorColumn').forEach(cell => {
+                cell.classList.toggle('hidden', !showColor);
+            });
+        }
+    </script>
+    
+
+</body>
+
+</html>
